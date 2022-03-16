@@ -1,0 +1,159 @@
+<!-- Copyright (c) 2022 KST Moschkau GmbH
+  this is a personal project of the all-knowing Felix
+use it or get used by it -->
+
+<style>
+  @import url("/modules/kst.wc/styles.css");
+</style>
+
+<div class="weather-control-container">
+  <img src="/modules/kst.wc/KSTICLogo.png" alt="KST" width="250" height="250" />
+  <h4>KST Weather Control</h4>
+  <fieldset class="top">
+    <legend>User Input</legend>
+    <div class="flex-left">
+      <table>
+        <tbody>
+          <tr>
+            <td>City ID</td>
+            <td>
+              <reality-property type="Integer" id="cityID"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>API Token</td>
+            <td>
+              <reality-property type="String" id="token"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Get Token and CityID from:</td>
+            <td>
+              <a href="https://openweathermap.org/" target="_blank"
+                >Open Weather API Link</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex-right">
+      <button class="button" id="btnSync">Find City</button>
+    </div>
+  </fieldset>
+  <fieldset class="top">
+    <legend>Live Data</legend>
+    <div class="flex-left">
+      <table>
+        <legend><b>City Info</b></legend>
+        <tbody>
+          <tr>
+            <td>City Name</td>
+            <td>
+              <reality-property type="String" id="cityName"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>City ID</td>
+            <td>
+              <reality-property
+                type="String"
+                id="cityIDRead"
+              ></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Time</td>
+            <td>
+              <reality-property type="String" id="time"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Last Update</td>
+            <td>
+              <reality-property type="String" id="lstUpdt"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Sunrise Time</td>
+            <td>
+              <reality-property type="String" id="sunRise"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Sunset Time</td>
+            <td>
+              <reality-property type="String" id="sunSet"></reality-property>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <legend><b>Weather Data</b></legend>
+        <tbody>
+          <tr>
+            <td>Temperature</td>
+            <td>
+              <reality-property type="String" id="temp"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Humidity</td>
+            <td>
+              <reality-property type="String" id="hum"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Pressure</td>
+            <td>
+              <reality-property type="String" id="press"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Wind Speed</td>
+            <td>
+              <reality-property type="String" id="wSpd"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Wind Direction</td>
+            <td>
+              <reality-property type="String" id="wDir"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Cloud Coverage</td>
+            <td>
+              <reality-property type="String" id="cld"></reality-property>
+            </td>
+          </tr>
+          <tr>
+            <td>Weather</td>
+            <td>
+              <reality-property type="String" id="wth"></reality-property>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex-right">
+      <img
+        src="http://openweathermap.org/img/wn/10d@2x.png"
+        alt="WeatherIcon"
+        id="weatherIcon"
+      />
+      <button class="button" id="btnLnk" value="false">Link to Sky</button>
+      <button class="button" id="btnUpdate">Manual Update</button>
+      <button class="button" id="btnAutoUpdate" value="true">
+        Auto Update
+      </button>
+      <div class="auto-update-prop">
+        <label for="pollingInterval">Auto Update Interval</label>
+        <reality-property
+          type="Integer"
+          id="pollingInterval"
+        ></reality-property>
+      </div>
+    </div>
+  </fieldset>
+</div>

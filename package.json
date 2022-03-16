@@ -1,0 +1,22 @@
+{
+  "name": "@kst/felix_test_hub",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Felix messing around",
+  "scripts": {
+    "start": "node src/server/index.js"
+  },
+  "author": "Felix Moschkau <felix.moschkau@kst-moschkau.eu>",
+  "contributors": [],
+  "license": "GPL-2.0-only",
+  "dependencies": {
+    "@zerodensity/realityhub-api": "^1.2.0",
+    "axios": "^0.26.0",
+    "elgato-stream-deck": "4.0.1",
+    "express": "^4.17.1",
+    "jsdom": "^19.0.0",
+    "node-fetch": "^2.6.1",
+    "request": "^2.88.2",
+    "serve-static": "^1.14.1"
+  }
+}
