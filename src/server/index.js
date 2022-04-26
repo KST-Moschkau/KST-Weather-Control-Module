@@ -23,7 +23,12 @@ const express = require("express");
 const path = require("path");
 const fetch = require("node-fetch");
 
-const REALITY_HUB_PORT = process.env.REALITY_HUB_PORT || 80;
+//Enter the HUB Port here
+const REALITY_HUB_PORT = process.env.REALITY_HUB_PORT || 8080;
+//Enter the server IP here
+const SERVER_IP = "172.16.1.130";
+//Enter the backend Port here
+const BACKEND_Port = 5000;
 
 class KSTWCBackend {
   constructor() {
@@ -32,6 +37,8 @@ class KSTWCBackend {
     this.pollTimer = null;
     this.apiToken = null;
     this.linked = false;
+    this.isValidWeatherResp = false;
+    this.currentWeatherData = null;
     this.iniData = require("./ini.json");
   }
 
@@ -40,9 +47,9 @@ class KSTWCBackend {
       menuTitle: "Weather Control",
       clientModuleName: "kst.wc_client",
       moduleName: "kst.wc",
-      serverURL: "http://172.16.1.130:5000/",
+      serverURL: "http://"+SERVER_IP+":"+ BACKEND_Port+ "/",
       hub: {
-        host: "172.16.1.130",
+        host: SERVER_IP,
         port: REALITY_HUB_PORT,
       },
     });
@@ -59,6 +66,7 @@ class KSTWCBackend {
         getPollingInterval: this.getPollingInterval,
         getCityID: this.getCityID,
         getToken: this.getToken,
+        emitCurrentWeatherData: this.emitCurrentWeatherData,
         isLinked: this.isLinked,
         changePollingInterval: this.changePollingInterval,
         changeCityID: this.changeCityID,
@@ -81,8 +89,8 @@ class KSTWCBackend {
 
     app.use(express.static(path.join(__dirname, "../client")));
 
-    app.listen(5000, "0.0.0.0", () => {
-      console.info("Weather Control backend started on port 5000");
+    app.listen(BACKEND_Port, "0.0.0.0", () => {
+      console.info("Weather Control backend started on port "+ BACKEND_Port);
     });
   }
 
@@ -120,6 +128,7 @@ class KSTWCBackend {
 
   //save settings
   storeIni() {
+    if(this.isValidWeatherResp){
     this.iniData.CityID = this.cityID;
     this.iniData.APIToken = this.apiToken;
     this.iniData.UpdateInterval = this.pollingInterval;
@@ -134,6 +143,7 @@ class KSTWCBackend {
       }
     });
     console.log("New ini saved.");
+  } else console.log("Wont save new ini due to invalid Response!");
   }
 
   //start the polling and change state
@@ -188,6 +198,11 @@ class KSTWCBackend {
     return {
       status: !!this.pollTimer ? "started" : "stopped",
     };
+  }
+
+  emitCurrentWeatherData(){
+    if(this.currentWeatherData != null)
+    this.api.emit("weatherdata", JSON.parse(this.currentWeatherData));
   }
 
   isLinked() {
@@ -334,6 +349,18 @@ class KSTWCBackend {
       .catch((ex) => console.trace(ex));
   }
 
+   async sendStatusMessage(message){
+    this.api.emit("statusMessage", {message: message});
+  }
+
+  validateWeatherResp(weatherResp){
+    if(weatherResp.status != 200){
+      console.log("Error in API response!");
+      this.sendStatusMessage(weatherResp.status + " " + weatherResp.statusText);
+    }
+    return weatherResp.status === 200;
+  }
+
   //Main polling function
   async poll() {
     this.pollTimer = setTimeout(
@@ -347,13 +374,25 @@ class KSTWCBackend {
         `https://api.openweathermap.org/data/2.5/weather?id=${this.cityID}&mode=json&units=metric&appid=${this.apiToken}`
       );
       const weatherDataJSON = await weatherResp.text();
+      this.isValidWeatherResp=this.validateWeatherResp(weatherResp);
+
+      if(this.isValidWeatherResp){
+      this.sendStatusMessage("Weather Data received.");
 
       //write the whole response in the Weather Control node
       // await this.sendNodeProperty("KSTWC", "Default//Raw JSON/0", weatherDataJSON);
       if (this.linked) await this.sendUpdate(JSON.parse(weatherDataJSON));
 
+      this.currentWeatherData = weatherDataJSON;
       this.api.emit("weatherdata", JSON.parse(weatherDataJSON));
-    } catch (ex) {
+    }
+  } catch (ex) {
+    const status = ex.message.split("reason: ");
+    if (status[1] == "getaddrinfo ENOTFOUND api.openweathermap.org"){
+      this.sendStatusMessage("Cant reach openweathermap.org");
+    } else{
+      this.sendStatusMessage(status[1]);
+    }
       console.error(ex.message);
     }
   }

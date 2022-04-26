@@ -21,6 +21,7 @@
 class KSTWCClient {
   weatherData = null;
   pollingInterval = 5;
+  receivingCounter = 0;
   isLinked = false;
   isAutoUpdating = false;
   container = null;
@@ -50,6 +51,7 @@ class KSTWCClient {
         this.api.off("weatherdata", this.weatherData.updateData.bind(this));
         this.api.off("weatherdata", this.weatherData.drawData.bind(this));
         this.api.off("statuschange", this.onStatusChange.bind(this));
+        this.api.off("statusMessage", this.onStatusMessage.bind(this));
         this.api.off("linkchange", this.onLinkChange.bind(this));
       }
     };
@@ -166,12 +168,27 @@ class KSTWCClient {
     // Subscribe to (polling) status change event
     this.api.on("statuschange", this.onStatusChange.bind(this));
 
+    // Subscribe to status message change event
+    this.api.on("statusMessage", this.onStatusMessage.bind(this));
+    const statusField = this.containerElement.querySelector("#status");
+    statusField.property = {
+      ...this,
+      Value: "Initializing..",
+    };
+
     // Subscribe to (linked) status change event
     this.api.on("linkchange", this.onLinkChange.bind(this));
 
     // Subscribe to weatherdata event
     this.api.on("weatherdata", this.weatherData.updateData.bind(this));
     this.api.on("weatherdata", this.weatherData.drawData.bind(this));
+
+    //get current weatherdata from server
+    this.api.emitCurrentWeatherData();
+    setTimeout(() => { statusField.property = {
+      ...this,
+      Value: "Server sent data.",
+    }; }, 2000);
   }
 
   onStatusChange(e) {
@@ -183,6 +200,19 @@ class KSTWCClient {
     console.log("Changing Status to: " + started);
     autoButton.value = started;
     this.isAutoUpdating = started;
+  }
+
+  onStatusMessage(e) {
+    var message = e.message;
+    if ( message == "Weather Data received."){
+    this.receivingCounter++;
+    message = message + " "+ this.receivingCounter;
+    } else this.receivingCounter = 0;
+    const statusField = this.containerElement.querySelector("#status");
+    statusField.property = {
+      ...this,
+      Value: message,
+    };
   }
 
   onLinkChange(e) {
@@ -321,6 +351,7 @@ class WeatherData {
     const cldField = this.containerElement.querySelector("#cld");
     const lstUpdtField = this.containerElement.querySelector("#lstUpdt");
     const iconField = this.containerElement.querySelector("#weatherIcon");
+
 
     cityField.property = {
       ...this,

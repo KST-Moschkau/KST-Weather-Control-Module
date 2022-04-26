@@ -38,6 +38,14 @@ use it or get used by it -->
       </table>
     </div>
     <div class="flex-right">
+      <div class="status-prop">
+        <label for="status">Status</label>
+        <reality-property
+          type="String"
+          readonly
+          id="status"
+        ></reality-property>
+      </div>
       <button class="button" id="btnSync">Find City</button>
     </div>
   </fieldset>
@@ -137,6 +145,7 @@ use it or get used by it -->
       </table>
     </div>
     <div class="flex-right">
+      <legend>Weather Icon</legend>
       <img
         src="http://openweathermap.org/img/wn/10d@2x.png"
         alt="WeatherIcon"
@@ -152,6 +161,7 @@ use it or get used by it -->
         <reality-property
           type="Integer"
           id="pollingInterval"
+          min="10"
         ></reality-property>
       </div>
     </div>
