@@ -34,11 +34,22 @@ class KSTWCBackend {
   constructor() {
     this.pollingInterval = 10;
     this.cityID = null;
+    this.city = null;
+    this.fav01 = null;
+    this.fav01ID = null;
+    this.fav02 = null;
+    this.fav02ID = null;
+    this.fav03 = null;
+    this.fav03ID = null;
+    this.fav04 = null;
+    this.fav04ID = null;
+    this.favJSON = null;
     this.pollTimer = null;
     this.apiToken = null;
     this.linked = false;
     this.isValidWeatherResp = false;
     this.currentWeatherData = null;
+    this.iniChanged = false;
     this.iniData = require("./ini.json");
   }
 
@@ -47,7 +58,7 @@ class KSTWCBackend {
       menuTitle: "Weather Control",
       clientModuleName: "kst.wc_client",
       moduleName: "kst.wc",
-      serverURL: "http://"+SERVER_IP+":"+ BACKEND_Port+ "/",
+      serverURL: "http://" + SERVER_IP + ":" + BACKEND_Port + "/",
       hub: {
         host: SERVER_IP,
         port: REALITY_HUB_PORT,
@@ -67,10 +78,13 @@ class KSTWCBackend {
         getCityID: this.getCityID,
         getToken: this.getToken,
         emitCurrentWeatherData: this.emitCurrentWeatherData,
+        emitFavs: this.emitFavs,
         isLinked: this.isLinked,
         changePollingInterval: this.changePollingInterval,
         changeCityID: this.changeCityID,
+        changeFav: this.changeFav,
         changeToken: this.changeToken,
+        changeAutoPolling: this.changeAutoPolling,
         changeLinked: this.changeLinked,
         storeIni: this.storeIni,
       },
@@ -90,7 +104,7 @@ class KSTWCBackend {
     app.use(express.static(path.join(__dirname, "../client")));
 
     app.listen(BACKEND_Port, "0.0.0.0", () => {
-      console.info("Weather Control backend started on port "+ BACKEND_Port);
+      console.info("Weather Control backend started on port " + BACKEND_Port);
     });
   }
 
@@ -114,36 +128,57 @@ class KSTWCBackend {
   //load settings
   loadIni() {
     this.cityID = this.iniData.CityID;
+    this.city = this.iniData.City;
+    this.fav01 = this.iniData.Fav01;
+    this.fav01ID = this.iniData.Fav01ID;
+    this.fav02 = this.iniData.Fav02;
+    this.fav02ID = this.iniData.Fav02ID;
+    this.fav03 = this.iniData.Fav03;
+    this.fav03ID = this.iniData.Fav03ID;
+    this.fav04 = this.iniData.Fav04;
+    this.fav04ID = this.iniData.Fav04ID;
     this.apiToken = this.iniData.APIToken;
+    this.generateFavJSON();
     this.pollingInterval = this.iniData.UpdateInterval;
     console.log(
-      "API initialized with CityID " +
-        this.cityID +
-        " ,APIToken " +
-        this.apiToken +
-        " and pollingInterval " +
-        this.pollingInterval
+      `API initialized with current CityID ${this.cityID} ,APIToken ${this.apiToken}, pollingInterval ${this.pollingInterval} and AutoUpdating = ${this.iniData.AutoUpdating}`
     );
   }
 
   //save settings
   storeIni() {
-    if(this.isValidWeatherResp){
-    this.iniData.CityID = this.cityID;
-    this.iniData.APIToken = this.apiToken;
-    this.iniData.UpdateInterval = this.pollingInterval;
-    this.iniData.AutoUpdating = this.getStatus().status == "started";
-    const iniJSON = JSON.stringify(this.iniData);
-    console.log(iniJSON);
-    const fs = require("fs");
-    fs.writeFile("./src/server/ini.json", iniJSON, "utf8", function (err) {
-      if (err) {
-        console.log("Cant write ini file!");
-        return console.log(err);
-      }
-    });
-    console.log("New ini saved.");
-  } else console.log("Wont save new ini due to invalid Response!");
+    if (this.iniChanged) {
+      if (this.isValidWeatherResp) {
+        this.iniData.CityID = this.cityID;
+        this.iniData.City = this.city;
+        this.iniData.Fav01 = this.fav01;
+        this.iniData.Fav01ID = this.fav01ID;
+        this.iniData.Fav02 = this.fav02;
+        this.iniData.Fav02ID = this.fav02ID;
+        this.iniData.Fav03 = this.fav03;
+        this.iniData.Fav03ID = this.fav03ID;
+        this.iniData.Fav04 = this.fav04;
+        this.iniData.Fav04ID = this.fav04ID;
+        this.iniData.APIToken = this.apiToken;
+        this.iniData.UpdateInterval = this.pollingInterval;
+        this.iniData.AutoUpdating = this.getStatus().status == "started";
+        const iniJSON = JSON.stringify(this.iniData);
+        const fs = require("fs");
+        fs.writeFile("./src/server/ini.json", iniJSON, "utf8", function (err) {
+          if (err) {
+            console.log("Cant write ini file!");
+            return console.log(err);
+          }
+        });
+        console.log("New ini saved.");
+        this.iniChanged = false;
+      } else console.log("Wont save new ini due to invalid Response!");
+    } else console.log("No changes in ini no need for saving.");
+  }
+
+  //generate a small JSON containing the favs
+  generateFavJSON() {
+    this.favJSON = `{"Fav01":"${this.fav01}","Fav01ID":${this.fav01ID},"Fav02":"${this.fav02}","Fav02ID":${this.fav02ID},"Fav03":"${this.fav03}","Fav03ID":${this.fav03ID},"Fav04":"${this.fav04}","Fav04ID":${this.fav04ID}}`;
   }
 
   //start the polling and change state
@@ -157,14 +192,23 @@ class KSTWCBackend {
 
   //Getter and Setter
   changePollingInterval(newInterval) {
-    console.log("Changing PollingInterval to " + newInterval);
-    this.pollingInterval = newInterval;
-    this.storeIni();
+    if (newInterval == this.pollingInterval) {
+      console.log("Tried changing PollingInterval to " + newInterval + " but its already the active one!");
+    } else {
+      console.log("Changing PollingInterval to " + newInterval);
+      this.pollingInterval = newInterval;
+      this.iniChanged = true;
+    }
   }
 
   changeCityID(newID) {
-    console.log("Changing city ID to " + newID);
-    this.cityID = newID;
+    if (newID == this.cityID) {
+      console.log("Tried changing city ID to " + newID + " but its already the active one!");
+    } else {
+      console.log("Changing city ID to " + newID);
+      this.cityID = newID;
+      this.iniChanged = true;
+    }
     if (this.getStatus().status == "stopped") {
       this.startPolling(this.pollingInterval);
       this.stopPolling();
@@ -172,12 +216,75 @@ class KSTWCBackend {
       this.stopPolling();
       this.startPolling(this.pollingInterval);
     }
-    this.storeIni();
+  }
+
+  changeFav(favIndex) {
+    if (this.isValidWeatherResp) {
+      if (favIndex == 1) {
+        if (this.fav01ID == this.cityID) {
+          console.log("Tried to store fav but it already is stored!");
+        } else {
+          this.fav01 = this.city;
+          this.fav01ID = this.cityID;
+          this.iniChanged = true;
+        }
+      } else if (favIndex == 2) {
+        if (this.fav02ID == this.cityID) {
+          console.log("Tried to store fav but it already is stored!");
+        } else {
+          this.fav02 = this.city;
+          this.fav02ID = this.cityID;
+          this.iniChanged = true;
+        }
+      } else if (favIndex == 3) {
+        if (this.fav03ID == this.cityID) {
+          console.log("Tried to store fav but it already is stored!");
+        } else {
+          this.fav03 = this.city;
+          this.fav03ID = this.cityID;
+          this.iniChanged = true;
+        }
+      } else {
+        if (this.fav04ID == this.cityID) {
+          console.log("Tried to store fav but it already is stored!");
+        } else {
+          this.fav04 = this.city;
+          this.fav04ID = this.cityID;
+          this.iniChanged = true;
+        }
+      }
+      console.log(`Saved a new fav ${favIndex} with name ${this.city} and ID ${this.cityID}`);
+      this.emitFavs();
+      this.storeIni();
+    } else {
+      console.log("Couldnt save new fav as the response is invalid.");
+    }
   }
 
   changeToken(newToken) {
-    console.log("Changing API token to " + newToken);
-    this.apiToken = newToken;
+    if (newToken == this.apiToken) {
+      console.log("Tried changing API token to " + newToken + " but its already the active one!");
+    } else {
+      console.log("Changing API token to " + newToken);
+      this.apiToken = newToken;
+      this.iniChanged = true;
+    }
+  }
+
+  changeAutoPolling(state) {
+    if (state && this.getStatus().status === "stopped") {
+      this.startPolling();
+      console.log("Starting polling with " + this.pollingInterval);
+      console.log("Auto Update activated.");
+      this.iniChanged = true;
+    } else if (!state && this.getStatus().status === "started") {
+      this.stopPolling();
+      console.log("Auto Update deactivated");
+      this.iniChanged = true;
+    } else {
+      console.log("Tried to change Auto Update status but no changes were needed.");
+    }
+    this.storeIni();
   }
 
   changeLinked(state) {
@@ -200,9 +307,14 @@ class KSTWCBackend {
     };
   }
 
-  emitCurrentWeatherData(){
-    if(this.currentWeatherData != null)
-    this.api.emit("weatherdata", JSON.parse(this.currentWeatherData));
+  emitCurrentWeatherData() {
+    if (this.currentWeatherData != null)
+      this.api.emit("weatherdata", JSON.parse(this.currentWeatherData));
+  }
+
+  emitFavs() {
+    this.generateFavJSON();
+    this.api.emit("favs", JSON.parse(this.favJSON));
   }
 
   isLinked() {
@@ -349,12 +461,12 @@ class KSTWCBackend {
       .catch((ex) => console.trace(ex));
   }
 
-   async sendStatusMessage(message){
-    this.api.emit("statusMessage", {message: message});
+  async sendStatusMessage(message) {
+    this.api.emit("statusMessage", { message: message });
   }
 
-  validateWeatherResp(weatherResp){
-    if(weatherResp.status != 200){
+  validateWeatherResp(weatherResp) {
+    if (weatherResp.status != 200) {
       console.log("Error in API response!");
       this.sendStatusMessage(weatherResp.status + " " + weatherResp.statusText);
     }
@@ -374,25 +486,27 @@ class KSTWCBackend {
         `https://api.openweathermap.org/data/2.5/weather?id=${this.cityID}&mode=json&units=metric&appid=${this.apiToken}`
       );
       const weatherDataJSON = await weatherResp.text();
-      this.isValidWeatherResp=this.validateWeatherResp(weatherResp);
+      this.isValidWeatherResp = this.validateWeatherResp(weatherResp);
 
-      if(this.isValidWeatherResp){
-      this.sendStatusMessage("Weather Data received.");
+      if (this.isValidWeatherResp) {
+        this.sendStatusMessage("Weather Data received.");
 
-      //write the whole response in the Weather Control node
-      // await this.sendNodeProperty("KSTWC", "Default//Raw JSON/0", weatherDataJSON);
-      if (this.linked) await this.sendUpdate(JSON.parse(weatherDataJSON));
+        //write the whole response in the Weather Control node
+        // await this.sendNodeProperty("KSTWC", "Default//Raw JSON/0", weatherDataJSON);
+        if (this.linked) await this.sendUpdate(JSON.parse(weatherDataJSON));
 
-      this.currentWeatherData = weatherDataJSON;
-      this.api.emit("weatherdata", JSON.parse(weatherDataJSON));
-    }
-  } catch (ex) {
-    const status = ex.message.split("reason: ");
-    if (status[1] == "getaddrinfo ENOTFOUND api.openweathermap.org"){
-      this.sendStatusMessage("Cant reach openweathermap.org");
-    } else{
-      this.sendStatusMessage(status[1]);
-    }
+        this.currentWeatherData = weatherDataJSON;
+        this.api.emit("weatherdata", JSON.parse(weatherDataJSON));
+        this.city = JSON.parse(weatherDataJSON).name;
+        this.storeIni();
+      }
+    } catch (ex) {
+      const status = ex.message.split("reason: ");
+      if (status[1] == "getaddrinfo ENOTFOUND api.openweathermap.org") {
+        this.sendStatusMessage("Cant reach openweathermap.org");
+      } else {
+        this.sendStatusMessage(status[1]);
+      }
       console.error(ex.message);
     }
   }

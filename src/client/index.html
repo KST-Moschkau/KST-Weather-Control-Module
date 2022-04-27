@@ -29,31 +29,30 @@ use it or get used by it -->
           <tr>
             <td>Get Token and CityID from:</td>
             <td>
-              <a href="https://openweathermap.org/" target="_blank"
-                >Open Weather API Link</a
-              >
+              <a href="https://openweathermap.org/" target="_blank">Open Weather API Link</a>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="flex-right">
-      <div class="status-prop">
+      <div>
         <label for="status">Status</label>
-        <reality-property
-          type="String"
-          readonly
-          id="status"
-        ></reality-property>
+        <reality-property type="String" readonly id="status"></reality-property>
       </div>
       <button class="button" id="btnSync">Find City</button>
+      <legend>Favourites (Hold to store)</legend>
+      <button class="button" id="btnFav01">01</button>
+      <button class="button" id="btnFav02">02</button>
+      <button class="button" id="btnFav03">03</button>
+      <button class="button" id="btnFav04">04</button>
     </div>
   </fieldset>
   <fieldset class="top">
     <legend>Live Data</legend>
     <div class="flex-left">
       <table>
-        <legend><b>City Info</b></legend>
+        <legend>City Info</legend>
         <tbody>
           <tr>
             <td>City Name</td>
@@ -64,10 +63,7 @@ use it or get used by it -->
           <tr>
             <td>City ID</td>
             <td>
-              <reality-property
-                type="String"
-                id="cityIDRead"
-              ></reality-property>
+              <reality-property type="String" id="cityIDRead"></reality-property>
             </td>
           </tr>
           <tr>
@@ -146,11 +142,7 @@ use it or get used by it -->
     </div>
     <div class="flex-right">
       <legend>Weather Icon</legend>
-      <img
-        src="http://openweathermap.org/img/wn/10d@2x.png"
-        alt="WeatherIcon"
-        id="weatherIcon"
-      />
+      <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="WeatherIcon" id="weatherIcon" />
       <button class="button" id="btnLnk" value="false">Link to Sky</button>
       <button class="button" id="btnUpdate">Manual Update</button>
       <button class="button" id="btnAutoUpdate" value="true">
@@ -158,11 +150,7 @@ use it or get used by it -->
       </button>
       <div class="auto-update-prop">
         <label for="pollingInterval">Auto Update Interval</label>
-        <reality-property
-          type="Integer"
-          id="pollingInterval"
-          min="10"
-        ></reality-property>
+        <reality-property type="Integer" id="pollingInterval" min="10"></reality-property>
       </div>
     </div>
   </fieldset>

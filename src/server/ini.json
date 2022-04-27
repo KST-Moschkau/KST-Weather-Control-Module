@@ -1,1 +1,15 @@
-{"CityID":1337,"APIToken":"-","UpdateInterval":600,"AutoUpdating":false}
+{
+    "CityID": 2884245,
+    "City": "Kreuzau",
+    "Fav01": "Kreuzau",
+    "Fav01ID": 2884245,
+    "Fav02": "Bodrum",
+    "Fav02ID": 320995,
+    "Fav03": "Las Vegas",
+    "Fav03ID": 5506956,
+    "Fav04": "Tokyo",
+    "Fav04ID": 1850147,
+    "APIToken": "-",
+    "UpdateInterval": 600,
+    "AutoUpdating": false
+}

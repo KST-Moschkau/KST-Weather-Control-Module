@@ -20,6 +20,7 @@
 
 class KSTWCClient {
   weatherData = null;
+  favs = null;
   pollingInterval = 5;
   receivingCounter = 0;
   isLinked = false;
@@ -50,7 +51,9 @@ class KSTWCClient {
         //Unsubscribe subscribed events..
         this.api.off("weatherdata", this.weatherData.updateData.bind(this));
         this.api.off("weatherdata", this.weatherData.drawData.bind(this));
+        this.api.off("weatherdata", this.onCityIDChange.bind(this));
         this.api.off("statuschange", this.onStatusChange.bind(this));
+        this.api.off("fav", this.onFavChange.bind(this));
         this.api.off("statusMessage", this.onStatusMessage.bind(this));
         this.api.off("linkchange", this.onLinkChange.bind(this));
       }
@@ -110,9 +113,9 @@ class KSTWCClient {
       this.api.changeToken(tokenField.property.Value);
       console.log(
         "Sending new CityID " +
-          cityIDField.property.Value +
-          " and new APIToken " +
-          tokenField.property.Value
+        cityIDField.property.Value +
+        " and new APIToken " +
+        tokenField.property.Value
       );
     });
 
@@ -144,16 +147,7 @@ class KSTWCClient {
     autoButton.value = this.isAutoUpdating;
 
     autoButton.addEventListener("click", () => {
-      console.log(autoButton.value);
-      if (autoButton.value === "false") {
-        this.api.startPolling();
-        console.log("Trying to start Polling with " + this.pollingInterval);
-        console.log("Auto Update activated.");
-      } else {
-        this.api.stopPolling();
-        console.log("Auto Update deactivated");
-      }
-      this.api.storeIni();
+      this.api.changeAutoPolling(autoButton.value === "false");
     });
 
     // Bind "Update" button's click handler
@@ -165,8 +159,196 @@ class KSTWCClient {
       this.api.stopPolling();
     });
 
+    //Bind Fav buttons
+    const fav01Button = this.containerElement.querySelector("#btnFav01");
+    const fav02Button = this.containerElement.querySelector("#btnFav02");
+    const fav03Button = this.containerElement.querySelector("#btnFav03");
+    const fav04Button = this.containerElement.querySelector("#btnFav04");
+
+    var longpress = false;
+    var presstimer = null;
+
+    fav01Button.addEventListener("mousedown", (e) => {
+      if (e.type === "click" && e.button !== 0) {
+        return;
+      }
+
+      longpress = false;
+
+      fav01Button.classList.add("buttonLongpress");
+
+      const longpressFunc = (api) => {
+        console.log("Telling server to store new Fav01 with cityID " + this.cityID);
+        api.changeFav(1);
+        longpress = true;
+      }
+
+      presstimer = setTimeout(longpressFunc.bind(null, this.api), 1000);
+
+      return false;
+    });
+
+    fav01Button.addEventListener("click", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav01Button.classList.remove("buttonLongpress");
+
+      if (longpress) {
+        return false;
+      }
+      console.log("Asking server to load Fav01");
+      this.api.changeCityID(this.favs.Fav01ID);
+    });
+
+    fav01Button.addEventListener("mouseout", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav01Button.classList.remove("buttonLongpress");
+    });
+
+    fav02Button.addEventListener("mousedown", (e) => {
+      if (e.type === "click" && e.button !== 0) {
+        return;
+      }
+
+      longpress = false;
+
+      fav02Button.classList.add("buttonLongpress");
+
+      const longpressFunc = (api) => {
+        console.log("Telling server to store new Fav02 with cityID " + this.cityID);
+        api.changeFav(2);
+        longpress = true;
+      }
+
+      presstimer = setTimeout(longpressFunc.bind(null, this.api), 1000);
+
+      return false;
+    });
+
+    fav02Button.addEventListener("click", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav02Button.classList.remove("buttonLongpress");
+
+      if (longpress) {
+        return false;
+      }
+      console.log("Asking server to load Fav02");
+      this.api.changeCityID(this.favs.Fav02ID);
+    });
+
+    fav02Button.addEventListener("mouseout", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav02Button.classList.remove("buttonLongpress");
+    });
+
+    fav03Button.addEventListener("mousedown", (e) => {
+      if (e.type === "click" && e.button !== 0) {
+        return;
+      }
+
+      longpress = false;
+
+      fav03Button.classList.add("buttonLongpress");
+
+      const longpressFunc = (api) => {
+        console.log("Telling server to store new Fav03 with cityID " + this.cityID);
+        api.changeFav(3);
+        longpress = true;
+      }
+
+      presstimer = setTimeout(longpressFunc.bind(null, this.api), 1000);
+
+      return false;
+    });
+
+    fav03Button.addEventListener("click", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav03Button.classList.remove("buttonLongpress");
+
+      if (longpress) {
+        return false;
+      }
+      console.log("Asking server to load Fav03");
+      this.api.changeCityID(this.favs.Fav03ID);
+    });
+
+    fav03Button.addEventListener("mouseout", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav03Button.classList.remove("buttonLongpress");
+    });
+
+    fav04Button.addEventListener("mousedown", (e) => {
+      if (e.type === "click" && e.button !== 0) {
+        return;
+      }
+
+      longpress = false;
+
+      fav04Button.classList.add("buttonLongpress");
+
+      const longpressFunc = (api) => {
+        console.log("Telling server to store new Fav04 with cityID " + this.cityID);
+        api.changeFav(4);
+        longpress = true;
+      }
+
+      presstimer = setTimeout(longpressFunc.bind(null, this.api), 1000);
+
+      return false;
+    });
+
+    fav04Button.addEventListener("click", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav04Button.classList.remove("buttonLongpress");
+
+      if (longpress) {
+        return false;
+      }
+      console.log("Asking server to load Fav04");
+      this.api.changeCityID(this.favs.Fav04ID);
+    });
+
+    fav04Button.addEventListener("mouseout", (e) => {
+      if (presstimer !== null) {
+        clearTimeout(presstimer);
+        presstimer = null;
+      }
+
+      fav04Button.classList.remove("buttonLongpress");
+    });
+
     // Subscribe to (polling) status change event
     this.api.on("statuschange", this.onStatusChange.bind(this));
+
+    // Subscribe to favChange event
+    this.api.on("favs", this.onFavChange.bind(this));
 
     // Subscribe to status message change event
     this.api.on("statusMessage", this.onStatusMessage.bind(this));
@@ -182,13 +364,17 @@ class KSTWCClient {
     // Subscribe to weatherdata event
     this.api.on("weatherdata", this.weatherData.updateData.bind(this));
     this.api.on("weatherdata", this.weatherData.drawData.bind(this));
+    this.api.on("weatherdata", this.onCityIDChange.bind(this));
 
     //get current weatherdata from server
     this.api.emitCurrentWeatherData();
-    setTimeout(() => { statusField.property = {
-      ...this,
-      Value: "Server sent data.",
-    }; }, 2000);
+    this.api.emitFavs();
+    setTimeout(() => {
+      statusField.property = {
+        ...this,
+        Value: "Server sent data.",
+      };
+    }, 2000);
   }
 
   onStatusChange(e) {
@@ -204,9 +390,9 @@ class KSTWCClient {
 
   onStatusMessage(e) {
     var message = e.message;
-    if ( message == "Weather Data received."){
-    this.receivingCounter++;
-    message = message + " "+ this.receivingCounter;
+    if (message == "Weather Data received.") {
+      this.receivingCounter++;
+      message = message + " " + this.receivingCounter;
     } else this.receivingCounter = 0;
     const statusField = this.containerElement.querySelector("#status");
     statusField.property = {
@@ -223,6 +409,32 @@ class KSTWCClient {
     } else linkButton.classList.remove("buttonToggled");
     console.log("Changing link state to: " + this.isLinked);
     linkButton.value = this.isLinked;
+  }
+
+  onFavChange(e) {
+    console.log("New Favs received form server.");
+    this.favs = e;
+    const fav01Button = this.containerElement.querySelector("#btnFav01");
+    const fav02Button = this.containerElement.querySelector("#btnFav02");
+    const fav03Button = this.containerElement.querySelector("#btnFav03");
+    const fav04Button = this.containerElement.querySelector("#btnFav04");
+    fav01Button.innerText = fav01Button.textContent = e.Fav01;
+    fav02Button.innerText = fav02Button.textContent = e.Fav02;
+    fav03Button.innerText = fav03Button.textContent = e.Fav03;
+    fav04Button.innerText = fav04Button.textContent = e.Fav04;
+  }
+
+  onCityIDChange(e) {
+    if (e.id != this.cityID) {
+      console.log("Noticed serverside ID change. Changing to " + e.id);
+      this.cityID = e.id;
+    }
+    const cityIDField = this.containerElement.querySelector("#cityID");
+    const cityID = e.id;
+    cityIDField.property = {
+      ...this,
+      Value: cityID,
+    };
   }
 }
 
