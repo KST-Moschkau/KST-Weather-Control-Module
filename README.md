@@ -19,6 +19,6 @@ Paste both into the Weather Control page and hit find city. If successful it wil
 You can either manually or automatically update the data with the update buttons.
 If "Link to Sky" is enabled the module will try to write the data into the Weather Control node in the nodegraph on all online engines with every update.
 
-The KST Weather Control blueprint is adjusted to simulate as many of the possible owmAPI weather conditions as good as possible. It can be freely adjusted in the OnChangedWeatherID function. I would advise to enable auto-exposure so your scene wont get to dark in cloudy or night situations. The KST WC node has a cloud density multiplier to soften the densiness a little bit.
+The KST Weather Control blueprint is adjusted to simulate as many of the possible owmAPI weather conditions as good as possible. It can be freely adjusted in the OnChangedWeatherID function. I would advise to enable auto-exposure so your scene wont get to dark in cloudy or night situations. The KST WC node has a cloud density multiplier to soften the density a little bit.
 
 Have fun!
