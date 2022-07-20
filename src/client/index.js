@@ -67,7 +67,7 @@ class KSTWCClient {
       destroy: () => destroyModule(),
     });
 
-    // Download Module Example's HTML file and set it to our container element
+    // Download Module's HTML file and set it to our container element
     const response = await fetch("/modules/kst.wc/index.html");
     this.containerElement.innerHTML = await response.text();
     this.weatherData.drawFirstData(this.containerElement);
@@ -447,10 +447,8 @@ class WeatherData {
     this.time = "TestTime";
     this.date = new Date();
     this.dateISOTime = null;
-    this.sunriseTime = new Date();
-    this.sunriseString = "08:00";
-    this.sunsetString = "21:00";
-    this.sunsetTime = new Date();
+    this.sunriseString = "08:00:00";
+    this.sunsetString = "21:00:00";
     this.temperature = 36;
     this.temperatureString = "36 °C";
     this.humidity = 100;
@@ -648,18 +646,15 @@ class WeatherData {
     this.dateISOTime = new Date(
       Date.now() + (weatherdata.timezone / 60) * 60000
     ).toISOString();
-    this.sunriseTime = weatherdata.sys.sunrise;
-    this.sunriseDate = new Date(
-      (this.sunriseTime + weatherdata.timezone - 3600) * 1000
+    this.sunriseDate = new Date((weatherdata.sys.sunrise + weatherdata.timezone) * 1000
     );
     this.sunriseString =
-      this.sunriseDate.getHours() + ":" + this.sunriseDate.getMinutes();
-    this.sunsetTime = weatherdata.sys.sunset;
+      this.sunriseDate.toISOString().split("T")[1].split(".")[0];
     this.sunsetDate = new Date(
-      (this.sunsetTime + weatherdata.timezone - 3600) * 1000
+      (weatherdata.sys.sunset + weatherdata.timezone) * 1000
     );
     this.sunsetString =
-      this.sunsetDate.getHours() + ":" + this.sunsetDate.getMinutes();
+      this.sunsetDate.toISOString().split("T")[1].split(".")[0];
     this.temperature = weatherdata.main.temp;
     this.temperatureString = `${weatherdata.main.temp} °C`;
     this.humidity = weatherdata.main.humidity;

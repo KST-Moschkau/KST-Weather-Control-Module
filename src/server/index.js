@@ -344,13 +344,13 @@ class KSTWCBackend {
       Date.now() + (weatherdata.timezone / 60) * 60000
     ).toISOString();
     const sunriseTime = weatherdata.sys.sunrise;
-    const sunriseDate = new Date(
-      (sunriseTime + weatherdata.timezone - 3600) * 1000
-    );
+    const sunriseDateISO = new Date(
+      (sunriseTime + weatherdata.timezone) * 1000
+    ).toISOString();
     const sunsetTime = weatherdata.sys.sunset;
-    const sunsetDate = new Date(
-      (sunsetTime + weatherdata.timezone - 3600) * 1000
-    );
+    const sunsetDateISO = new Date(
+      (sunsetTime + weatherdata.timezone) * 1000
+    ).toISOString();
 
     /*this.realityWorldAPI.setNodeProperty({
       NodePath: nodeName,
@@ -359,7 +359,8 @@ class KSTWCBackend {
     });
 */
 
-    console.log("Sending data to nodegraph...");
+    var d = new Date();
+    console.log(`${d.toLocaleTimeString()}: Sending data to nodegraph...`);
 
     this.realityWorldAPI
       .setNodeProperty({
@@ -380,6 +381,20 @@ class KSTWCBackend {
         NodePath: nodeName,
         PropertyPath: "City Info//Time/0",
         Value: dateISOTime,
+      })
+      .catch((ex) => console.trace(ex));
+    this.realityWorldAPI
+      .setNodeProperty({
+        NodePath: nodeName,
+        PropertyPath: "City Info//SunriseTime/0",
+        Value: sunriseDateISO,
+      })
+      .catch((ex) => console.trace(ex));
+    this.realityWorldAPI
+      .setNodeProperty({
+        NodePath: nodeName,
+        PropertyPath: "City Info//SunsetTime/0",
+        Value: sunsetDateISO,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
