@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 KST Moschkau GmbH.
+ * Copyright (c) 2023 KST Moschkau GmbH.
  *
  * This file is part of Kst Weather Control.
  * This is a personal project of the all-knowing Felix
@@ -56,6 +56,8 @@ class KSTWCClient {
         this.api.off("fav", this.onFavChange.bind(this));
         this.api.off("statusMessage", this.onStatusMessage.bind(this));
         this.api.off("linkchange", this.onLinkChange.bind(this));
+        this.api.off("overrchange", this.onOverrideChange.bind(this));
+        this.api.off("overrIDchange", this.onOverrIDChange.bind(this));
       }
     };
 
@@ -118,6 +120,34 @@ class KSTWCClient {
         tokenField.property.Value
       );
     });
+
+    // Bind "Override" button's click handler and get initial state
+    const overrButton = this.containerElement.querySelector("#btnWeatherOr");
+
+    const overrResponse = await this.api.isOverridden();
+    this.isOverridden = overrResponse;
+    if (this.isOverridden) {
+      overrButton.classList.add("buttonToggled");
+    } else overrButton.classList.remove("buttonToggled");
+    overrButton.value = this.isOverridden;
+
+    overrButton.addEventListener("click", () => {
+      var state = overrButton.value === "true";
+      this.api.changeOverridden(!state);
+    });
+
+    // Bind Override Dropdown and get initial state
+    const overrSelect = this.containerElement.querySelector("#WeatherOR");
+    const overrIDResponse = await this.api.getOverrID();
+    overrSelect.value = overrIDResponse;
+
+    overrSelect.addEventListener("change", () => {
+      console.log("Changing Drop down to: " + overrSelect.value);
+      this.api.changeOverrID(overrSelect.value);
+    })
+
+
+    //changeOverrSelect("Thunder");
 
     // Bind "Link" button's click handler and get initial state
     const linkButton = this.containerElement.querySelector("#btnLnk");
@@ -361,6 +391,12 @@ class KSTWCClient {
     // Subscribe to (linked) status change event
     this.api.on("linkchange", this.onLinkChange.bind(this));
 
+    // Subscribe to (overridden) status change event
+    this.api.on("overrchange", this.onOverrideChange.bind(this));
+
+    // Subscribe to (override ID) status change event
+    this.api.on("overrIDchange", this.onOverrIDChange.bind(this));
+
     // Subscribe to weatherdata event
     this.api.on("weatherdata", this.weatherData.updateData.bind(this));
     this.api.on("weatherdata", this.weatherData.drawData.bind(this));
@@ -409,6 +445,22 @@ class KSTWCClient {
     } else linkButton.classList.remove("buttonToggled");
     console.log("Changing link state to: " + this.isLinked);
     linkButton.value = this.isLinked;
+  }
+
+  onOverrideChange(e) {
+    this.isOverridden = e.isOverridden === true;
+    const overrButton = this.containerElement.querySelector("#btnWeatherOr");
+    if (this.isOverridden) {
+      overrButton.classList.add("buttonToggled");
+    } else overrButton.classList.remove("buttonToggled");
+    console.log("Changing override state to: " + this.isOverridden);
+    overrButton.value = this.isOverridden;
+  }
+
+  onOverrIDChange(e) {
+    console.log("Changing override ID to: " + e.overrID);
+    const overrSelect = this.containerElement.querySelector("#WeatherOR");
+    overrSelect.value = e.overrID;
   }
 
   onFavChange(e) {

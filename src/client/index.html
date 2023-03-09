@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022 KST Moschkau GmbH
+<!-- Copyright (c) 2023 KST Moschkau GmbH
   this is a personal project of the all-knowing Felix
 use it or get used by it -->
 
@@ -30,6 +30,21 @@ use it or get used by it -->
             <td>Get Token and CityID from:</td>
             <td>
               <a href="https://openweathermap.org/" target="_blank">Open Weather API Link</a>
+            </td>
+          </tr>
+          <tr>
+            <td>Weather Override</td>
+            <td>
+              <select id="WeatherOR">
+                <option value=800>Clear Sky</option>
+                <option value=803>Cloudy</option>
+                <option value=500>Light Rain</option>
+                <option value=502>Rain</option>
+                <option value=202>Thunder</option>
+                <option value=600>Light Snow</option>
+                <option value=602>Snow</option>
+              </select>
+              <button class="button" id="btnWeatherOr">Override</button>
             </td>
           </tr>
         </tbody>

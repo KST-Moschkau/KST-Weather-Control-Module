@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 KST Moschkau GmbH.
+ * Copyright (c) 2023 KST Moschkau GmbH.
  *
  * This file is part of Kst Weather Control.
  * This is a personal project of the all-knowing Felix
@@ -46,7 +46,9 @@ class KSTWCBackend {
     this.favJSON = null;
     this.pollTimer = null;
     this.apiToken = null;
+    this.overrID = null;
     this.linked = false;
+    this.overridden = false;
     this.isValidWeatherResp = false;
     this.currentWeatherData = null;
     this.iniChanged = false;
@@ -76,16 +78,20 @@ class KSTWCBackend {
         getStatus: this.getStatus,
         getPollingInterval: this.getPollingInterval,
         getCityID: this.getCityID,
+        getOverrID: this.getOverrID,
         getToken: this.getToken,
         emitCurrentWeatherData: this.emitCurrentWeatherData,
         emitFavs: this.emitFavs,
         isLinked: this.isLinked,
+        isOverridden: this.isOverridden,
         changePollingInterval: this.changePollingInterval,
         changeCityID: this.changeCityID,
         changeFav: this.changeFav,
         changeToken: this.changeToken,
         changeAutoPolling: this.changeAutoPolling,
         changeLinked: this.changeLinked,
+        changeOverridden: this.changeOverridden,
+        changeOverrID: this.changeOverrID,
         storeIni: this.storeIni,
       },
       this
@@ -138,6 +144,7 @@ class KSTWCBackend {
     this.fav04 = this.iniData.Fav04;
     this.fav04ID = this.iniData.Fav04ID;
     this.apiToken = this.iniData.APIToken;
+    this.overrID = this.iniData.OverrID;
     this.generateFavJSON();
     this.pollingInterval = this.iniData.UpdateInterval;
     console.log(
@@ -160,6 +167,7 @@ class KSTWCBackend {
         this.iniData.Fav04 = this.fav04;
         this.iniData.Fav04ID = this.fav04ID;
         this.iniData.APIToken = this.apiToken;
+        this.iniData.OverrID = this.overrID;
         this.iniData.UpdateInterval = this.pollingInterval;
         this.iniData.AutoUpdating = this.getStatus().status == "started";
         const iniJSON = JSON.stringify(this.iniData);
@@ -293,6 +301,29 @@ class KSTWCBackend {
     this.linked = state;
   }
 
+  changeOverridden(state) {
+    console.log("Changing override state to " + state);
+    this.api.emit("overrchange", { isOverridden: state });
+    this.overridden = state;
+  }
+
+  changeOverrID(id) {
+    console.log("Changing override ID to " + id);
+    const nodeName = "KSTWC";
+    this.api.emit("overrIDchange", { overrID: id });
+    this.overrID = id;
+    this.iniChanged = true;
+    if (this.overridden === true) {
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: nodeName,
+          PropertyPath: "Weather Data//WeatherID/0",
+          Value: this.overrID,
+        })
+        .catch((ex) => console.trace(ex));
+    }
+  }
+
   stopPolling() {
     if (!this.pollTimer) return;
 
@@ -321,6 +352,10 @@ class KSTWCBackend {
     return this.linked;
   }
 
+  isOverridden() {
+    return this.overridden;
+  }
+
   getToken() {
     return this.apiToken;
   }
@@ -334,6 +369,10 @@ class KSTWCBackend {
 
   getCityID() {
     return this.cityID;
+  }
+
+  getOverrID() {
+    return this.overrID;
   }
 
   //send updates to the nodegraph
@@ -460,13 +499,25 @@ class KSTWCBackend {
         Value: weatherdata.weather[0].main,
       })
       .catch((ex) => console.trace(ex));
-    this.realityWorldAPI
-      .setNodeProperty({
-        NodePath: nodeName,
-        PropertyPath: "Weather Data//WeatherID/0",
-        Value: weatherdata.weather[0].id,
-      })
-      .catch((ex) => console.trace(ex));
+    if (this.overridden === true) {
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: nodeName,
+          PropertyPath: "Weather Data//WeatherID/0",
+          Value: this.overrID,
+        })
+        .catch((ex) => console.trace(ex));
+      console.log("Sending overridden weatherID: " + this.overrID);
+    } else {
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: nodeName,
+          PropertyPath: "Weather Data//WeatherID/0",
+          Value: weatherdata.weather[0].id,
+        })
+        .catch((ex) => console.trace(ex));
+      console.log("Sending weatherID: " + weatherdata.weather[0].id);
+    }
     this.realityWorldAPI
       .setNodeProperty({
         NodePath: nodeName,
