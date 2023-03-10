@@ -57,7 +57,7 @@ class KSTWCClient {
         this.api.off("statusMessage", this.onStatusMessage.bind(this));
         this.api.off("linkchange", this.onLinkChange.bind(this));
         this.api.off("overrchange", this.onOverrideChange.bind(this));
-        this.api.off("overrIDchange", this.onOverrIDChange.bind(this));
+        this.api.off("currentOverrchange", this.onCurrentOverrChange.bind(this));
       }
     };
 
@@ -138,16 +138,19 @@ class KSTWCClient {
 
     // Bind Override Dropdown and get initial state
     const overrSelect = this.containerElement.querySelector("#WeatherOR");
-    const overrIDResponse = await this.api.getOverrID();
+    const overrides = await this.api.getOverrides();
+    const names = overrides.flat();
+    for (var i = 1; i <= 7; i++) {
+      overrSelect[i - 1].label = names[i];
+    }
+    const overrIDResponse = await this.api.getCurrentOverr();
     overrSelect.value = overrIDResponse;
 
     overrSelect.addEventListener("change", () => {
       console.log("Changing Drop down to: " + overrSelect.value);
-      this.api.changeOverrID(overrSelect.value);
+      this.api.changeCurrentOverr(overrSelect.value);
     })
 
-
-    //changeOverrSelect("Thunder");
 
     // Bind "Link" button's click handler and get initial state
     const linkButton = this.containerElement.querySelector("#btnLnk");
@@ -230,7 +233,7 @@ class KSTWCClient {
         return false;
       }
       console.log("Asking server to load Fav01");
-      this.api.changeCityID(this.favs.Fav01ID);
+      this.api.changeCityID(this.favs[1][1]);
     });
 
     fav01Button.addEventListener("mouseout", (e) => {
@@ -274,7 +277,7 @@ class KSTWCClient {
         return false;
       }
       console.log("Asking server to load Fav02");
-      this.api.changeCityID(this.favs.Fav02ID);
+      this.api.changeCityID(this.favs[1][2]);
     });
 
     fav02Button.addEventListener("mouseout", (e) => {
@@ -318,7 +321,7 @@ class KSTWCClient {
         return false;
       }
       console.log("Asking server to load Fav03");
-      this.api.changeCityID(this.favs.Fav03ID);
+      this.api.changeCityID(this.favs[1][3]);
     });
 
     fav03Button.addEventListener("mouseout", (e) => {
@@ -362,7 +365,7 @@ class KSTWCClient {
         return false;
       }
       console.log("Asking server to load Fav04");
-      this.api.changeCityID(this.favs.Fav04ID);
+      this.api.changeCityID(this.favs[1][4]);
     });
 
     fav04Button.addEventListener("mouseout", (e) => {
@@ -395,7 +398,7 @@ class KSTWCClient {
     this.api.on("overrchange", this.onOverrideChange.bind(this));
 
     // Subscribe to (override ID) status change event
-    this.api.on("overrIDchange", this.onOverrIDChange.bind(this));
+    this.api.on("currentOverrchange", this.onCurrentOverrChange.bind(this));
 
     // Subscribe to weatherdata event
     this.api.on("weatherdata", this.weatherData.updateData.bind(this));
@@ -457,10 +460,10 @@ class KSTWCClient {
     overrButton.value = this.isOverridden;
   }
 
-  onOverrIDChange(e) {
-    console.log("Changing override ID to: " + e.overrID);
+  onCurrentOverrChange(e) {
+    console.log("Changing override ID to: " + e.currentOverr);
     const overrSelect = this.containerElement.querySelector("#WeatherOR");
-    overrSelect.value = e.overrID;
+    overrSelect.value = e.currentOverr;
   }
 
   onFavChange(e) {
@@ -470,10 +473,10 @@ class KSTWCClient {
     const fav02Button = this.containerElement.querySelector("#btnFav02");
     const fav03Button = this.containerElement.querySelector("#btnFav03");
     const fav04Button = this.containerElement.querySelector("#btnFav04");
-    fav01Button.innerText = fav01Button.textContent = e.Fav01;
-    fav02Button.innerText = fav02Button.textContent = e.Fav02;
-    fav03Button.innerText = fav03Button.textContent = e.Fav03;
-    fav04Button.innerText = fav04Button.textContent = e.Fav04;
+    fav01Button.innerText = fav01Button.textContent = e[0][1];
+    fav02Button.innerText = fav02Button.textContent = e[0][2];
+    fav03Button.innerText = fav03Button.textContent = e[0][3];
+    fav04Button.innerText = fav04Button.textContent = e[0][4];
   }
 
   onCityIDChange(e) {

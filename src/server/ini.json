@@ -1,7 +1,7 @@
 {
-    "CityID": 320995,
-    "City": "Bodrum",
-    "Fav01": "Düren",
+    "CityID": 2934486,
+    "City": "Düren",
+    "Fav01": "New York",
     "Fav01ID": 2934486,
     "Fav02": "Bodrum",
     "Fav02ID": 320995,
@@ -10,7 +10,55 @@
     "Fav04": "New York",
     "Fav04ID": 5128581,
     "APIToken": "-",
-    "OverrID": "800",
+    "CurrentOverr": "1",
     "UpdateInterval": 600,
-    "AutoUpdating": false
+    "AutoUpdating": false,
+    "Favs": [
+        [
+            "City Names: ",
+            "Düren",
+            "Bodrum",
+            "Los Angeles",
+            "New York"
+        ],
+        [
+            "City IDs: ",
+            2934486,
+            320995,
+            5368361,
+            5128581
+        ]
+    ],
+    "WeatherOverrides": [
+        [
+            "Override Names: ",
+            "Clear Sky",
+            "Cloudy",
+            "Light Rain",
+            "Rain",
+            "Thunder",
+            "Light Snow",
+            "Snow"
+        ],
+        [
+            "Override WeatherIDs: ",
+            800,
+            803,
+            501,
+            502,
+            202,
+            600,
+            602
+        ],
+        [
+            "Override CloudCoverage: ",
+            0,
+            60,
+            60,
+            80,
+            90,
+            60,
+            80
+        ]
+    ]
 }

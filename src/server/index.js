@@ -32,21 +32,17 @@ const BACKEND_Port = 5000;
 
 class KSTWCBackend {
   constructor() {
+    this.nodeName = "KSTWC";
     this.pollingInterval = 10;
     this.cityID = null;
     this.city = null;
-    this.fav01 = null;
-    this.fav01ID = null;
-    this.fav02 = null;
-    this.fav02ID = null;
-    this.fav03 = null;
-    this.fav03ID = null;
-    this.fav04 = null;
-    this.fav04ID = null;
-    this.favJSON = null;
+    this.favs = null;
+    this.overrides = null;
     this.pollTimer = null;
     this.apiToken = null;
-    this.overrID = null;
+    this.currentOverr = null;
+    this.currentWeatherID = null;
+    this.currentCloudiness = null;
     this.linked = false;
     this.overridden = false;
     this.isValidWeatherResp = false;
@@ -78,7 +74,8 @@ class KSTWCBackend {
         getStatus: this.getStatus,
         getPollingInterval: this.getPollingInterval,
         getCityID: this.getCityID,
-        getOverrID: this.getOverrID,
+        getCurrentOverr: this.getCurrentOverr,
+        getOverrides: this.getOverrides,
         getToken: this.getToken,
         emitCurrentWeatherData: this.emitCurrentWeatherData,
         emitFavs: this.emitFavs,
@@ -91,7 +88,7 @@ class KSTWCBackend {
         changeAutoPolling: this.changeAutoPolling,
         changeLinked: this.changeLinked,
         changeOverridden: this.changeOverridden,
-        changeOverrID: this.changeOverrID,
+        changeCurrentOverr: this.changeCurrentOverr,
         storeIni: this.storeIni,
       },
       this
@@ -135,17 +132,10 @@ class KSTWCBackend {
   loadIni() {
     this.cityID = this.iniData.CityID;
     this.city = this.iniData.City;
-    this.fav01 = this.iniData.Fav01;
-    this.fav01ID = this.iniData.Fav01ID;
-    this.fav02 = this.iniData.Fav02;
-    this.fav02ID = this.iniData.Fav02ID;
-    this.fav03 = this.iniData.Fav03;
-    this.fav03ID = this.iniData.Fav03ID;
-    this.fav04 = this.iniData.Fav04;
-    this.fav04ID = this.iniData.Fav04ID;
+    this.favs = this.iniData.Favs;
     this.apiToken = this.iniData.APIToken;
-    this.overrID = this.iniData.OverrID;
-    this.generateFavJSON();
+    this.currentOverr = this.iniData.CurrentOverr;
+    this.overrides = this.iniData.WeatherOverrides;
     this.pollingInterval = this.iniData.UpdateInterval;
     console.log(
       `API initialized with current CityID ${this.cityID} ,APIToken ${this.apiToken}, pollingInterval ${this.pollingInterval} and AutoUpdating = ${this.iniData.AutoUpdating}`
@@ -158,16 +148,9 @@ class KSTWCBackend {
       if (this.isValidWeatherResp) {
         this.iniData.CityID = this.cityID;
         this.iniData.City = this.city;
-        this.iniData.Fav01 = this.fav01;
-        this.iniData.Fav01ID = this.fav01ID;
-        this.iniData.Fav02 = this.fav02;
-        this.iniData.Fav02ID = this.fav02ID;
-        this.iniData.Fav03 = this.fav03;
-        this.iniData.Fav03ID = this.fav03ID;
-        this.iniData.Fav04 = this.fav04;
-        this.iniData.Fav04ID = this.fav04ID;
+        this.iniData.Favs = this.favs;
         this.iniData.APIToken = this.apiToken;
-        this.iniData.OverrID = this.overrID;
+        this.iniData.CurrentOverr = this.currentOverr;
         this.iniData.UpdateInterval = this.pollingInterval;
         this.iniData.AutoUpdating = this.getStatus().status == "started";
         const iniJSON = JSON.stringify(this.iniData);
@@ -182,11 +165,6 @@ class KSTWCBackend {
         this.iniChanged = false;
       } else console.log("Wont save new ini due to invalid Response!");
     } else console.log("No changes in ini no need for saving.");
-  }
-
-  //generate a small JSON containing the favs
-  generateFavJSON() {
-    this.favJSON = `{"Fav01":"${this.fav01}","Fav01ID":${this.fav01ID},"Fav02":"${this.fav02}","Fav02ID":${this.fav02ID},"Fav03":"${this.fav03}","Fav03ID":${this.fav03ID},"Fav04":"${this.fav04}","Fav04ID":${this.fav04ID}}`;
   }
 
   //start the polling and change state
@@ -229,35 +207,36 @@ class KSTWCBackend {
   changeFav(favIndex) {
     if (this.isValidWeatherResp) {
       if (favIndex == 1) {
-        if (this.fav01ID == this.cityID) {
+        if (this.favs[1][1] == this.cityID) {
           console.log("Tried to store fav but it already is stored!");
         } else {
-          this.fav01 = this.city;
-          this.fav01ID = this.cityID;
+          this.favs[0][1] = this.city;
+          this.favs[1][1] = this.cityID;
           this.iniChanged = true;
+          console.log(this.city + " " + this.favs[0][1]);
         }
       } else if (favIndex == 2) {
-        if (this.fav02ID == this.cityID) {
+        if (this.favs[1][2] == this.cityID) {
           console.log("Tried to store fav but it already is stored!");
         } else {
-          this.fav02 = this.city;
-          this.fav02ID = this.cityID;
+          this.favs[0][2] = this.city;
+          this.favs[1][2] = this.cityID;
           this.iniChanged = true;
         }
       } else if (favIndex == 3) {
-        if (this.fav03ID == this.cityID) {
+        if (this.favs[1][3] == this.cityID) {
           console.log("Tried to store fav but it already is stored!");
         } else {
-          this.fav03 = this.city;
-          this.fav03ID = this.cityID;
+          this.favs[0][3] = this.city;
+          this.favs[1][3] = this.cityID;
           this.iniChanged = true;
         }
       } else {
-        if (this.fav04ID == this.cityID) {
+        if (this.favs[1][4] == this.cityID) {
           console.log("Tried to store fav but it already is stored!");
         } else {
-          this.fav04 = this.city;
-          this.fav04ID = this.cityID;
+          this.favs[0][4] = this.city;
+          this.favs[1][4] = this.cityID;
           this.iniChanged = true;
         }
       }
@@ -305,23 +284,51 @@ class KSTWCBackend {
     console.log("Changing override state to " + state);
     this.api.emit("overrchange", { isOverridden: state });
     this.overridden = state;
+    if (this.overridden === true) {
+
+      const weatherID = this.overrides[1][this.currentOverr];
+      const cloudOverr = this.overrides[2][this.currentOverr];
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: this.nodeName,
+          PropertyPath: "Weather Data//WeatherID/0",
+          Value: weatherID,
+        })
+        .catch((ex) => console.trace(ex));
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: this.nodeName,
+          PropertyPath: "Weather Data//CloudCoverage/0",
+          Value: cloudOverr,
+        })
+        .catch((ex) => console.trace(ex));
+    }
   }
 
-  changeOverrID(id) {
+  changeCurrentOverr(id) {
     console.log("Changing override ID to " + id);
-    const nodeName = "KSTWC";
-    this.api.emit("overrIDchange", { overrID: id });
-    this.overrID = id;
+    const weatherID = this.overrides[1][id];
+    const cloudOverr = this.overrides[2][id];
+    this.api.emit("currentOverrchange", { currentOverr: id });
+    this.currentOverr = id;
     this.iniChanged = true;
     if (this.overridden === true) {
       this.realityWorldAPI
         .setNodeProperty({
-          NodePath: nodeName,
+          NodePath: this.nodeName,
           PropertyPath: "Weather Data//WeatherID/0",
-          Value: this.overrID,
+          Value: weatherID,
+        })
+        .catch((ex) => console.trace(ex));
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: this.nodeName,
+          PropertyPath: "Weather Data//CloudCoverage/0",
+          Value: cloudOverr,
         })
         .catch((ex) => console.trace(ex));
     }
+
   }
 
   stopPolling() {
@@ -344,8 +351,8 @@ class KSTWCBackend {
   }
 
   emitFavs() {
-    this.generateFavJSON();
-    this.api.emit("favs", JSON.parse(this.favJSON));
+    this.api.emit("favs", this.favs);
+    console.log("Sending Favs: " + this.favs);
   }
 
   isLinked() {
@@ -371,14 +378,16 @@ class KSTWCBackend {
     return this.cityID;
   }
 
-  getOverrID() {
-    return this.overrID;
+  getCurrentOverr() {
+    return this.currentOverr;
+  }
+
+  getOverrides() {
+    return this.overrides;
   }
 
   //send updates to the nodegraph
   async sendUpdate(weatherdata) {
-    const nodeName = "KSTWC";
-
     const dateISOTime = new Date(
       Date.now() + (weatherdata.timezone / 60) * 60000
     ).toISOString();
@@ -391,140 +400,142 @@ class KSTWCBackend {
       (sunsetTime + weatherdata.timezone) * 1000
     ).toISOString();
 
-    /*this.realityWorldAPI.setNodeProperty({
-      NodePath: nodeName,
-      PropertyPath: "RAW Data//Raw JSON/0",
-      Value: weatherdata,
-    });
-*/
-
     var d = new Date();
     console.log(`${d.toLocaleTimeString()}: Sending data to nodegraph...`);
 
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//CityName/0",
         Value: weatherdata.name,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//CityID/0",
         Value: weatherdata.id,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//Time/0",
         Value: dateISOTime,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//SunriseTime/0",
         Value: sunriseDateISO,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//SunsetTime/0",
         Value: sunsetDateISO,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//Timezone/0",
         Value: weatherdata.timezone / 3600,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//Latitude/0",
         Value: weatherdata.coord.lat,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "City Info//Longitude/0",
         Value: weatherdata.coord.lon,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//Temperature/0",
         Value: weatherdata.main.temp,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//Humidity/0",
         Value: weatherdata.main.humidity,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//Pressure/0",
         Value: weatherdata.main.pressure,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//WindSpeed/0",
         Value: weatherdata.wind.speed,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//WindDirection/0",
         Value: weatherdata.wind.deg,
       })
       .catch((ex) => console.trace(ex));
     this.realityWorldAPI
       .setNodeProperty({
-        NodePath: nodeName,
+        NodePath: this.nodeName,
         PropertyPath: "Weather Data//Weather/0",
         Value: weatherdata.weather[0].main,
       })
       .catch((ex) => console.trace(ex));
     if (this.overridden === true) {
+      const weatherID = this.overrides[1][this.currentOverr];
       this.realityWorldAPI
         .setNodeProperty({
-          NodePath: nodeName,
+          NodePath: this.nodeName,
           PropertyPath: "Weather Data//WeatherID/0",
-          Value: this.overrID,
+          Value: weatherID,
         })
         .catch((ex) => console.trace(ex));
-      console.log("Sending overridden weatherID: " + this.overrID);
+      console.log("Sending overridden weatherID: " + this.currentOverr);
+      const cloudOverr = this.overrides[2][this.currentOverr];
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: this.nodeName,
+          PropertyPath: "Weather Data//CloudCoverage/0",
+          Value: cloudOverr,
+        })
+        .catch((ex) => console.trace(ex));
     } else {
       this.realityWorldAPI
         .setNodeProperty({
-          NodePath: nodeName,
+          NodePath: this.nodeName,
           PropertyPath: "Weather Data//WeatherID/0",
           Value: weatherdata.weather[0].id,
         })
         .catch((ex) => console.trace(ex));
       console.log("Sending weatherID: " + weatherdata.weather[0].id);
+      this.realityWorldAPI
+        .setNodeProperty({
+          NodePath: this.nodeName,
+          PropertyPath: "Weather Data//CloudCoverage/0",
+          Value: weatherdata.clouds.all,
+        })
+        .catch((ex) => console.trace(ex));
     }
-    this.realityWorldAPI
-      .setNodeProperty({
-        NodePath: nodeName,
-        PropertyPath: "Weather Data//CloudCoverage/0",
-        Value: weatherdata.clouds.all,
-      })
-      .catch((ex) => console.trace(ex));
   }
 
   async sendStatusMessage(message) {
@@ -559,11 +570,14 @@ class KSTWCBackend {
 
         //write the whole response in the Weather Control node
         // await this.sendNodeProperty("KSTWC", "Default//Raw JSON/0", weatherDataJSON);
-        if (this.linked) await this.sendUpdate(JSON.parse(weatherDataJSON));
+        const weatherDataParsed = JSON.parse(weatherDataJSON);
+        if (this.linked) await this.sendUpdate(weatherDataParsed);
 
         this.currentWeatherData = weatherDataJSON;
-        this.api.emit("weatherdata", JSON.parse(weatherDataJSON));
-        this.city = JSON.parse(weatherDataJSON).name;
+        this.api.emit("weatherdata", weatherDataParsed);
+        this.city = weatherDataParsed.name;
+        this.currentWeatherID = weatherDataParsed.weather[0].id;
+        this.currentCloudiness = weatherDataParsed.clouds.all;
         this.storeIni();
       }
     } catch (ex) {
