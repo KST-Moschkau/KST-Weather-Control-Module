@@ -2,6 +2,7 @@
     "HUBIP": "Your Server IP",
     "HUBPort": 80,
     "BackendPort": 5000,
+    "NodeName": "KSTWC",
     "CityID": 2934486,
     "City": "Düren",
     "Fav01": "New York",

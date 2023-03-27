@@ -26,7 +26,7 @@ const fetch = require("node-fetch");
 
 class KSTWCBackend {
   constructor() {
-    this.nodeName = "KSTWC";
+    this.nodeName = null;
     this.REALITY_HUB_PORT = null;
     this.SERVER_IP = null;
     this.BACKEND_Port = null;
@@ -128,6 +128,7 @@ class KSTWCBackend {
   //load settings
   loadIni() {
     console.log("Loading ini file..");
+    this.nodeName = this.iniData.NodeName;
     this.REALITY_HUB_PORT = this.iniData.HUBPort;
     this.SERVER_IP = this.iniData.HUBIP;
     this.BACKEND_Port = this.iniData.BackendPort;

@@ -19,6 +19,7 @@
  */
 
 class KSTWCClient {
+  version = "Version 0.2.1";
   weatherData = null;
   favs = null;
   pollingInterval = 5;
@@ -73,6 +74,11 @@ class KSTWCClient {
     const response = await fetch("/modules/kst.wc/index.html");
     this.containerElement.innerHTML = await response.text();
     this.weatherData.drawFirstData(this.containerElement);
+
+    // Checking the version number
+    const versionField = this.containerElement.querySelector("#version")
+    console.log(versionField);
+    versionField.textContent = this.version;
 
     // Get the pollingInterval from Server
     const pollingIntervalResponse = await this.api.getPollingInterval();
