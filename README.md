@@ -5,7 +5,7 @@ KST Weather Control Module for ZD RealityHUB
 
 HOWTO:
 
-Paste the source files somewhere on your HUB server and fire them up with npm start in console. There is a start script as batchfile which you could place on your desktop or whatever to also start the process. All you have to do is to adjust the path in the batchfile to match your file location.
+Paste the source files somewhere on your HUB server and enter your Servers IP, Port and the desired Backend Port in the ini files found under src/server. You can start the module with npm start in console. There is a start script as batchfile which you could place on your desktop or whereever to also start the process. All you have to do is to adjust the path in the batchfile to match your file location.
 
 The files in Assets should go into your Unreal Engine project. 
 This module utilizes the awesome Ultra Dynamic Sky Blueprint which can be bought here: https://www.unrealengine.com/marketplace/en-US/product/ultra-dynamic-sky
