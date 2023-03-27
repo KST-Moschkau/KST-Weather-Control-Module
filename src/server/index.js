@@ -23,16 +23,13 @@ const express = require("express");
 const path = require("path");
 const fetch = require("node-fetch");
 
-//Enter the HUB Port here
-const REALITY_HUB_PORT = process.env.REALITY_HUB_PORT || 8080;
-//Enter the server IP here
-const SERVER_IP = "172.16.1.130";
-//Enter the backend Port here
-const BACKEND_Port = 5000;
 
 class KSTWCBackend {
   constructor() {
     this.nodeName = "KSTWC";
+    this.REALITY_HUB_PORT = null;
+    this.SERVER_IP = null;
+    this.BACKEND_Port = null;
     this.pollingInterval = 10;
     this.cityID = null;
     this.city = null;
@@ -51,15 +48,22 @@ class KSTWCBackend {
     this.iniData = require("./ini.json");
   }
 
+  //initialise
+  init() {
+    this.loadIni();
+    this.startHTTPServer();
+    this.restart();
+  }
+
   async initBroker() {
     this.brokerClient = await BrokerClient.initModule({
       menuTitle: "Weather Control",
       clientModuleName: "kst.wc_client",
       moduleName: "kst.wc",
-      serverURL: "http://" + SERVER_IP + ":" + BACKEND_Port + "/",
+      serverURL: "http://" + this.SERVER_IP + ":" + this.BACKEND_Port + "/",
       hub: {
-        host: SERVER_IP,
-        port: REALITY_HUB_PORT,
+        host: this.SERVER_IP,
+        port: this.REALITY_HUB_PORT,
       },
     });
 
@@ -106,16 +110,9 @@ class KSTWCBackend {
 
     app.use(express.static(path.join(__dirname, "../client")));
 
-    app.listen(BACKEND_Port, "0.0.0.0", () => {
-      console.info("Weather Control backend started on port " + BACKEND_Port);
+    app.listen(this.BACKEND_Port, "0.0.0.0", () => {
+      console.info("Weather Control backend started on port " + this.BACKEND_Port);
     });
-  }
-
-  //initialise
-  init() {
-    this.startHTTPServer();
-    this.loadIni();
-    this.restart();
   }
 
   async restart() {
@@ -130,6 +127,10 @@ class KSTWCBackend {
 
   //load settings
   loadIni() {
+    console.log("Loading ini file..");
+    this.REALITY_HUB_PORT = this.iniData.HUBPort;
+    this.SERVER_IP = this.iniData.HUBIP;
+    this.BACKEND_Port = this.iniData.BackendPort;
     this.cityID = this.iniData.CityID;
     this.city = this.iniData.City;
     this.favs = this.iniData.Favs;
@@ -138,7 +139,7 @@ class KSTWCBackend {
     this.overrides = this.iniData.WeatherOverrides;
     this.pollingInterval = this.iniData.UpdateInterval;
     console.log(
-      `API initialized with current CityID ${this.cityID} ,APIToken ${this.apiToken}, pollingInterval ${this.pollingInterval} and AutoUpdating = ${this.iniData.AutoUpdating}`
+      `API intialized with HUB address ${this.SERVER_IP}:${this.REALITY_HUB_PORT} , BackendPort ${this.BACKEND_Port} and APIToken ${this.apiToken}`
     );
   }
 
